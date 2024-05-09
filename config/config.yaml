@@ -1,0 +1,21 @@
+date_columns:
+  - DOB
+  - HivTestDate
+  - ARTStartDate
+  - CurrentARTRegimenDispensationDate
+  - Current_CD4_countdate
+  - Current_VL_date
+  - Patient_status_date
+  - ANCVisitDate
+  - FirstInteraction_date
+  - LastInteraction_date
+  - NextAppointmentDate
+  - Prescriptiondate
+  - estimateddateofdelivery
+  - report_period
+
+input_path:
+  - /Users/johnnjenga/Downloads/zambia/SCP_cohort_sliced19032024.csv
+
+report_period:
+  - 2024-03-30
