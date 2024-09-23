@@ -10,15 +10,18 @@ def convert_dates(df, date_columns, report_period_value):
     Args:
         df (DataFrame): Input DataFrame.
         date_columns (list): List of column names containing dates to be converted.
+        report_period_value (str): The report period value in 'yyyy-MM-dd' format.
         
     Returns:
         DataFrame: DataFrame with date columns converted to a standardized format.
     """
     
-    df = df.withColumn("report_period", F.to_date(F.lit(report_period_value)))
+    # Convert the report period value to a date
+    df = df.withColumn("report_period", F.to_date(F.lit(report_period_value), 'yyyy-MM-dd'))
     
+    # Iterate through date columns and convert them to 'yyyy-MM-dd' format
     for column in date_columns:
-        df = df.withColumn(column, to_date(col(column), 'M/d/yyyy'))
+        df = df.withColumn(column, to_date(col(column), 'yyyy-MM-dd'))
         
     return df
 
@@ -89,7 +92,7 @@ def process_patient_data(df):
         .withColumn('BMI', F.when((col('patientheight').isNotNull()) & (col('patientweight').isNotNull()), col('patientweight') / (col('patientheight') * col('patientheight')))) \
            .withColumn('BMI', F.format_number(col('BMI'), 1)) \
            .withColumn('HIVtest_results',
-                       F.when((F.col('hivtestresults') != 'Positive') & (F.col('hivtestresults') != 'Negative'), 'Missing')) \
+                       F.when((F.col('hivtestresults') != 'Positive') & (F.col('hivtestresults') != 'Negative'), 'Missing').otherwise(col('hivtestresults'))) \
            .withColumn('sex', F.when(col('sex') == 'F', 'Female')
                        .when(df['sex'] == 'M', 'Male')
                        .otherwise('99')) \
@@ -277,14 +280,15 @@ def patient_status(df):
 
     return df
 
+# label define pt_status_new 1"Active" 2"Died" 3"Reactivated" 4"Stopped ART" 5"Transferred-out" 6"Made_inactive"
 
 
 def final_clinical_outcome(df):
     df = df.withColumn("outcome",
                        when(
-                           (col("patient_status") == 1) |
+                           (col("patient_status") == "Active") |
                            (
-                               ((col("patient_status") == 3) | (col("patient_status") == 5)) &
+                               ((col("patient_status") == "Reactivated") | (col("patient_status") == "Transferred-out")) &
                                (
                                    ((col("Days_missed") <= 30) | (col("Days_Away") <= 30) | (col("Days_Away_Dispense") <= 30)) |
                                    ((col("Days_Away_Dispense").isNull()) & ((col("Days_Away") <= 90) | (col("Days_missed").isNull()))) |
@@ -302,8 +306,8 @@ def generate_outcome_1(df):
     df = df.withColumn("outcome_1",
                        when((col("outcome") == 'retention in care') & (col("Patient_status_date").isNotNull()), 'Active on ART')
                        .when(((col("outcome") == 'retention in care')) & (col("Patient_status_date") < col('LastInteraction_date')),'TX_RTT')
-                       .when((col("outcome") == 'attrition') | (col("patient_status").isin([2, 4, 5, 6, 0])) & (col("Patient_status_date") < col('LastInteraction_date')), 'TX_ML')
-                       .when(((col("outcome") == 'attrition') & (col("patient_status") == 5)) &
+                       .when((col("outcome") == 'attrition') | (col("patient_status").isin(["Died","Stopped ART", "Transferred-out", "Made_inactive"]) | col("patient_status").isNull()) & (col("Patient_status_date") < col('LastInteraction_date')), 'TX_ML')
+                       .when(((col("outcome") == 'attrition') & (col("patient_status") == 'Transferred-out')) &
                              (
                                  ((col("Days_missed") <= 30) | (col("Days_Away") <= 30) | (col("Days_Away_Dispense") <= 30)) |
                                  ((col("Days_Away_Dispense").isNull()) & ((col("Days_Away") <= 90) | (col("Days_missed").isNull()))) |
@@ -345,23 +349,39 @@ def hiv_cascade(df):
     Returns:
         DataFrame: DataFrame with the 'hiv_cascade' column added.
     '''
+    # df = df.withColumn('hiv_cascade',
+    #                    when(
+    #                        (col('OnArt') == 'Yes') & (col('HIVtest_results').isin(['Positive', 'Negative', 'Missing'])),
+    #                        'HIV positive')
+    #                    .when(
+    #                        (col('OnArt') == 'Yes') & (col('outcome') == 'retention in care'),
+    #                        'Actively on ART')
+    #                    .when(
+    #                        (col('OnArt') == 'Yes') & (col('outcome') == 'retention in care') & (col('VL_eligibility') == 'Yes'),
+    #                        'VL eligible')
+    #                    .when(
+    #                        (col('OnArt') == 'Yes') & (col('outcome') == 'retention in care') & (col('VL_coverage') == 'Yes'),
+    #                        'VL coverage')
+    #                    .when(
+    #                        (col('OnArt') == 'Yes') & (col('outcome') == 'retention in care') & (col('VL_coverage') == 'Yes') & (col('VL_category') == '(<1000)'),
+    #                        'VL suppression')
+    #                    )
     df = df.withColumn('hiv_cascade',
                        when(
                            (col('OnArt') == 'Yes') & (col('HIVtest_results').isin(['Positive', 'Negative', 'Missing'])),
-                           'HIV positive')
-                       .when(
+                           'HIV positive'))
+    df=df.withColumn('hiv_cascade',when(
                            (col('OnArt') == 'Yes') & (col('outcome') == 'retention in care'),
-                           'Actively on ART')
-                       .when(
+                           'Actively on ART').otherwise(col('hiv_cascade')))
+    df=df.withColumn('hiv_cascade',when(
                            (col('OnArt') == 'Yes') & (col('outcome') == 'retention in care') & (col('VL_eligibility') == 'Yes'),
-                           'VL eligible')
-                       .when(
-                           (col('OnArt') == 'Yes') & (col('outcome') == 'retention in care') & (col('VL_coverage') == 'Yes'),
-                           'VL coverage')
-                       .when(
-                           (col('OnArt') == 'Yes') & (col('outcome') == 'retention in care') & (col('VL_coverage') == 'Yes') & (col('VL_category') == '(<1000)'),
-                           'VL suppression')
-                       )
+                           'VL eligible').otherwise(col('hiv_cascade')))
+    df=df.withColumn('hiv_cascade',when(
+                            (col('OnArt') == 'Yes') & (col('outcome') == 'retention in care') & (col('VL_coverage') == 'Yes'),
+                           'VL coverage').otherwise(col('hiv_cascade')))
+    df=df.withColumn('hiv_cascade',when(
+                            (col('OnArt') == 'Yes') & (col('outcome') == 'retention in care') & (col('VL_coverage') == 'Yes') & (col('VL_category') == '(<1000)'),
+                           'VL suppression').otherwise(col('hiv_cascade')))
     return df
 
 
@@ -386,7 +406,7 @@ def calculate_tx_ml(df):
                            (col('outcome') == 'attrition') & (col('months_since_art_start') >= 3) & (~col('patient_status').isin(['Died', 'Stopped ART'])),
                            'IIT 3>= months TX')
                        .when(
-                           (col('outcome') == 2) & (col('patient_status') == 'Stopped ART'),
+                           (col('outcome') == 'attrition') & (col('patient_status') == 'Stopped ART'),
                            'Stopped TX')
                        .when(
                            col('outcome') == 'retention in care',
@@ -445,16 +465,16 @@ def calculate_dsd_new(df):
         DataFrame: DataFrame with the 'DSD_new' column added.
     '''
     df = df.withColumn("DSD_new",
-                       when(col('dsd') == 'Community ART Distribution Points', 'Community ART Distribution Points')
-                       .when(col('dsd') == 'Community Adherance Groups', 'Community Adherance Groups')
-                       .when(col('dsd') == 'Fast Track', 'Fast Track')
-                       .when(col('dsd') == 'Health Post', 'Health Post')
-                       .when(col('dsd') == 'Mobile ART distritbution model', 'Mobile ART distritbution model')
-                       .when(col('dsd') == 'Multi Month Scriptiing', 'Multi Month Scriptiing')
-                       .when(col('dsd') == 'Multi Month Scriptiing ', 'Multi Month Scriptiing')
-                       .when(col('dsd') == 'Rural Adherance Group', 'Rural Adherance Group')
-                       .when(col('dsd') == 'Urban Adherance Group', 'Urban Adherance Group')
-                       .otherwise(col('dsd'))
+                       when(col('DSDModel') == 'Community ART Distribution Points', 'Community ART Distribution Points')
+                       .when(col('DSDModel') == 'Community Adherance Groups', 'Community Adherance Groups')
+                       .when(col('DSDModel') == 'Fast Track', 'Fast Track')
+                       .when(col('DSDModel') == 'Health Post', 'Health Post')
+                       .when(col('DSDModel') == 'Mobile ART distritbution model', 'Mobile ART distritbution model')
+                       .when(col('DSDModel') == 'Multi Month Scriptiing', 'Multi Month Scriptiing')
+                       .when(col('DSDModel') == 'Multi Month Scriptiing ', 'Multi Month Scriptiing')
+                       .when(col('DSDModel') == 'Rural Adherance Group', 'Rural Adherance Group')
+                       .when(col('DSDModel') == 'Urban Adherance Group', 'Urban Adherance Group')
+                       .otherwise(col('DSDModel'))
                       )
     return df
 
@@ -480,5 +500,42 @@ def calculate_mms(df):
                        .when((col('MMS') == '0') & (col('DSD_new') == 7), 'Rural Adherance Group')
                        .when((col('MMS') == '0') & (col('DSD_new') == 8), 'Urban Adherance Group')
                  )
+    
+    return df
+
+def deduplication(df):
+    # Unify the guid values using patient_guid and owningguid
+    df = df.withColumn("_patient_guid", col("patient_guid").cast("string"))
+    df = df.withColumn("pt_GUID", col("owningguid"))
+
+    # Generate distinct flags
+    window_spec = Window.partitionBy("owningguid", "dob", "sex", "current_age", "ARTStartDate").orderBy(lit(1))
+    df = df.withColumn("distinct_guid", (row_number().over(window_spec) == 1).cast("int"))
+
+    window_spec_art = Window.partitionBy("artnumber", "dob", "sex", "current_age", "ARTStartDate").orderBy(lit(1))
+    df = df.withColumn("distinct_ART", (row_number().over(window_spec_art) == 1).cast("int"))
+
+    window_spec_nupn = Window.partitionBy("nupn", "dob", "sex", "current_age", "ARTStartDate").orderBy(lit(1))
+    df = df.withColumn("distinct_NUPN", (row_number().over(window_spec_nupn) == 1).cast("int"))
+
+    window_spec_guid = Window.partitionBy("pt_GUID", "dob", "sex", "current_age", "ARTStartDate", "firstname", "lastname").orderBy(lit(1))
+    df = df.withColumn("distinct_GUID", (row_number().over(window_spec_guid) == 1).cast("int"))
+
+    window_spec_guid_n = Window.partitionBy("pt_GUID", "dob", "sex", "current_age", "ARTStartDate").orderBy(lit(1))
+    df = df.withColumn("distinct_GUID_n", (row_number().over(window_spec_guid_n) == 1).cast("int"))
+
+    # # Labeling distinct variables (adding meaningful labels as comments)
+    df = df.withColumn("distinct_GUID_label", when(col("distinct_GUID") == 1, "Unique").otherwise("Duplicate"))
+    df = df.withColumn("distinct_ART_label", when(col("distinct_ART") == 1, "Unique").otherwise("Duplicate"))
+    df = df.withColumn("distinct_NUPN_label", when(col("distinct_NUPN") == 1, "Unique").otherwise("Duplicate"))
+
+    # # Tagging duplicates by pt_GUID, art_start_date, and demographics
+    window_spec_dup = Window.partitionBy("pt_GUID", "firstname", "lastname", "dob", "sex", "current_age", "ARTStartDate").orderBy(lit(1))
+    df = df.withColumn("Pt_GUID_dups", row_number().over(window_spec_dup) - 1)
+
+    df = df.withColumn("Pt_GUID_dups_label", when(col("Pt_GUID_dups") == 0, "No duplicate")
+                                            .when(col("Pt_GUID_dups") == 1, "Duplicated once")
+                                            .when(col("Pt_GUID_dups") == 2, "Duplicated twice")
+                                            .when(col("Pt_GUID_dups") == 3, "Duplicated thrice"))
     
     return df
