@@ -1,0 +1,94 @@
+column_mappings:
+  PatientID: patientid
+  ARTNumber: artnumber
+  NUPN: nupn
+  # EditLocation: null
+  FacilityID: facilityid
+  FirstName: firstname
+  LastName: lastname
+  DOB: dob
+  Age: age
+  Sex: sex
+  patient_guid: mappedguid
+  FacilityName: facilityname
+  ArtFacilityName: artfacilityname
+  OwningGuid: owningguid
+  District: district
+  Province: province
+  HivTestDate: hivtestdate
+  patientheight: currentpatientheight
+  patientweight: currentpatientweight
+  Bmi: currentbmi
+  SystolicPressure: currentsystolic
+  DiastolicPressure: currentdiastolic
+  Temperature: currenttemperature
+  PulseRate: currentpulse
+  DateOfDeath: dateofdeath
+  UnderlyingCauseOfDeath: causeofdeath
+  UnderlyingCauseOfDeathICPC: causeofdeathicpc2id
+  UnderlyingCauseOfDeathICD: causeofdeathpathologyaxisid
+  WhereDeathOccured: placeofdeath
+  HIVTestResults: hivtestresults
+  WHOStagingBaseline: whostagingbaseline
+  WHOStagingBaselineDate: whostagingbaselinedate
+  WHOStagingCurrent: whostagingcurrent
+  WHOStagingCurrentDate: whostagingcurrentdate
+  ARTStartDate: artstartdate
+  # SwitchDate: null
+  # QualitativeRegimen: null
+  # MedRegimenDesc: null
+  # RegimenSwitch: null
+  ARTRegimenBaseline: artregimenbaseline
+  Prescription: prescription
+  Prescriptiondate: prescriptiondate
+  Creatinine: creatinine
+  # CreatinineDate: null
+  ALT: alt
+  # ALTDate: null
+  MalariaRDT: malariardt
+  MalariaRDTDate: malariardtdate
+  GlucoseRBS: rbs
+  # GlucoseRBSDate: null
+  UrineDpstkProtein: proteinuria
+  UrineDpstkProteinDate: proteinuriadate
+  GeneExpert: geneexpertmtbrif
+  GeneExpertDate: geneexpertmtbrifdate
+  TbPatientType: tbpresent
+  TBInitiatedOnART: onantitb
+  DotStartDate: datestartedontbtreatment
+  DoTCompleted: attcompleted
+  DiabetesMellitus: diabetes
+  # DiabetesMellitusDate: null
+  syphilis: screenedforsyphilis
+  # syphilisDate: null
+  hepatitis: hepatitisb
+  hepatitisDate: hepatitisbdate
+  Hypertension: hypertension
+  # HypertensionDate: null
+  # testingmodality: null
+  CurrentARTRegimen: currentartregimen
+  CurrentARTRegimenDispensationDate: currentartregimendispensationdate
+  DispensedDuration: dispensationduration
+  DSDModel: dsd
+  OwningGuid: owningguid
+  # DSDStartDate: null
+  Baseline_CD4_countDate: baseline_cd4_countdate
+  baseline_cd4: baseline_cd4
+  baseline_cd4_perc: baseline_cd4_perc
+  Current_CD4_countDate: current_cd4_countdate
+  current_cd4: current_cd4
+  current_cd4_perc: current_cd4_perc
+  Baseline_VL_date: baseline_vl_date
+  Baseline_VL_copies: baseline_vl_copies
+  Current_VL_date: current_vl_date
+  Current_VL_copies: current_vl_copies
+  # ViralLoadOrderDate: null
+  # ViralLoadDueDate: null
+  Patient_status_date: patient_status_date
+  Patient_status: patient_status
+  FirstInteraction_date: firstinteraction_date
+  Lastinteraction_date: lastinteraction_date
+  LastInteractionService: lastinteractionservice
+  NextAppointmentDate: nextappointmentdate
+  ANCVisitDate: ancvisitdate
+  EstimatedDateOfDelivery: estimateddateofdelivery
