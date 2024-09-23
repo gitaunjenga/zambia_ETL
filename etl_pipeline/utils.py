@@ -5,7 +5,13 @@ def spark():
     spark = SparkSession \
             .builder\
             .config('spark.ui.showConsoleProgress', 'false')\
+            .config("spark.executor.memory", "14g") \
+            .config("spark.driver.memory", "14g") \
             .config('spark.sql.execution.arrow.pyspark.enabled', 'true')\
+            .config("spark.executor.extraJavaOptions", "-XX:ReservedCodeCacheSize=512m") \
+            .config("spark.driver.extraJavaOptions", "-XX:ReservedCodeCacheSize=512m") \
+            .config("spark.sql.legacy.timeParserPolicy", "LEGACY") \
+            .config("spark.sql.parquet.datetimeRebaseModeInWrite", "LEGACY") \
             .getOrCreate()
             
     return spark
