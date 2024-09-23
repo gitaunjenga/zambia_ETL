@@ -14,8 +14,12 @@ date_columns:
   - estimateddateofdelivery
   - report_period
 
-input_path:
-  - /Users/johnnjenga/Downloads/zambia/SCP_cohort_sliced19032024.csv
+input_path_plus:
+  - /Users/johnnjenga/Downloads/Zambia_ETL/data/scplus_art_cohort_5_5_v2.csv
+
+input_path_legacy:
+  /Users/johnnjenga/Downloads/Zambia_ETL/data/SCL_ART_Cohort_30052024.csv
 
 report_period:
-  - 2024-03-30
+  - 2024-03-13
+  
