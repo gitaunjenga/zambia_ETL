@@ -1,12 +1,12 @@
-ART ETL Pipeline
+# ART ETL Pipeline
 
-Prerequisites
+### Prerequisites
 Ensure you have met the following requirements:
 
 Python 3.7 or higher
 Apache Airflow
 
-Installation
+### Installation
 Clone the repository:
 cd your-repo
 
