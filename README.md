@@ -22,7 +22,7 @@ Install the required packages:
 
 pip install -r requirements.txt
 
-Setup
+### Setup
 
 Configure Airflow:
 
@@ -48,7 +48,8 @@ Access the Airflow UI:
 
 Open your web browser and go to http://localhost:8080. You should see the Airflow dashboard where you can monitor your DAGs and tasks.
 
-Usage
+### Usage
+
 ETL scripts will be the etl_pipeline directory.
 
 All DAGs goes in the dags directory.
