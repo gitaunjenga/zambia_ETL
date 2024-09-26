@@ -25,7 +25,7 @@ Initialize the Airflow database:
 
 airflow db migrate
 
-Running the Project
+### Running the Project
 Start the Airflow web server:
 
 In one terminal window, start the web server:
