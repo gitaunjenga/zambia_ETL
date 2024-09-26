@@ -50,7 +50,7 @@ Open your web browser and go to http://localhost:8080. You should see the Airflo
 
 ### Usage
 
-ETL scripts will be the etl_pipeline directory.
+ETL scripts will be in the etl_pipeline directory.
 
 All DAGs goes in the dags directory.
 
